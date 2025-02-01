@@ -1,88 +1,53 @@
-import React from "react";
-import {
-  Box,
-  Typography,
-  Button,
-  LinearProgress,
-  Paper,
-  Grid,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import useHabitStore, { Habit } from "../store/store";
+import { useState } from "react";
+import useHabitStore from "@/store/store";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Check, Trash2 } from "lucide-react";
 
-const HabitList: React.FC = () => {
+const HabitList = () => {
   const { habits, removeHabit, toggleHabit } = useHabitStore();
+  const [selectedDate, _] = useState(new Date().toISOString().split("T")[0]);
 
-  const today = new Date().toISOString().split("T")[0];
-
-  const getStreak = (habit: Habit) => {
-    let streak = 0;
-    const currentDate = new Date();
-
-    while (true) {
-      const dateString = currentDate.toISOString().split("T")[0];
-      if (habit.completedDates.includes(dateString)) {
-        streak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-
-    return streak;
-  };
+  if (habits.length === 0) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        No habits added yet. Start tracking now!
+      </div>
+    );
+  }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 4 }}>
+    <div className="space-y-4">
       {habits.map((habit) => (
-        <Paper key={habit.id} elevation={2} sx={{ p: 2 }}>
-          <Grid container alignItems="center">
-            <Grid xs={12} sm={6}>
-              <Typography variant="h6">{habit.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {habit.frequency.charAt(0).toUpperCase() +
-                  habit.frequency.slice(1)}
-              </Typography>
-            </Grid>
-            <Grid xs={12} sm={6}>
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  color={
-                    habit.completedDates.includes(today) ? "success" : "primary"
-                  }
-                  onClick={() => toggleHabit(habit.id, today)}
-                  startIcon={<CheckCircleIcon />}
-                >
-                  {habit.completedDates.includes(today)
-                    ? "Completed"
-                    : "Mark Complete"}
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => removeHabit(habit.id)}
-                  startIcon={<DeleteIcon />}
-                >
-                  Remove
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2">
-              Current Streak: {getStreak(habit)} days
-            </Typography>
-            <LinearProgress
-              variant="determinate"
-              value={(getStreak(habit) / 30) * 100}
-              sx={{ mt: 1 }}
-            />
-          </Box>
-        </Paper>
+        <Card key={habit.id} className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="font-medium leading-none">{habit.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                Frequency: {habit.frequency}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={habit.completedDates.includes(selectedDate) ? "default" : "outline"}
+                size="sm"
+                onClick={() => toggleHabit(habit.id, selectedDate)}
+              >
+                <Check className={habit.completedDates.includes(selectedDate) ? "opacity-100" : "opacity-0"} />
+                {habit.completedDates.includes(selectedDate) ? "Done" : "Mark Done"}
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => removeHabit(habit.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </Card>
       ))}
-    </Box>
+    </div>
   );
 };
 
